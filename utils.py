@@ -68,20 +68,16 @@ def average_gradients(tower_grads):
     return average_grads
 
 
-def tower_loss(name_scope, logit, labels):
+def tower_loss( logit, labels):
+    print(labels)
+    print(logit)
+    print(logit.shape)
     cross_entropy_mean = tf.reduce_mean(
                   tf.nn.sparse_softmax_cross_entropy_with_logits(labels=labels, logits=logit)
                   )
-    tf.summary.scalar(
-                  name_scope + '_cross_entropy',
-                  cross_entropy_mean
-                  )
-    weight_decay_loss = tf.get_collection('weightdecay_losses')
-    tf.summary.scalar(name_scope + '_weight_decay_loss', tf.reduce_mean(weight_decay_loss))
 
     # Calculate the total loss for the current tower.
-    total_loss = cross_entropy_mean + weight_decay_loss
-    tf.summary.scalar(name_scope + '_total_loss', tf.reduce_mean(total_loss))
+    total_loss = cross_entropy_mean
     return total_loss
 
 

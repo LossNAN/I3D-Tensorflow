@@ -29,18 +29,18 @@ from utils import *
 # Basic model parameters as external flags.
 flags = tf.app.flags
 gpu_num = 1
-flags.DEFINE_float('learning_rate', 0.0, 'Initial learning rate.')
-flags.DEFINE_integer('max_steps', 5000, 'Number of steps to run trainer.')
-flags.DEFINE_integer('batch_size', 10, 'Batch size.')
+flags.DEFINE_float('learning_rate', 0.1, 'Initial learning rate.')
+flags.DEFINE_integer('max_steps', 100000, 'Number of steps to run trainer.')
+flags.DEFINE_integer('batch_size', 16, 'Batch size.')
 flags.DEFINE_integer('num_frame_per_clib', 16, 'Nummber of frames per clib')
 flags.DEFINE_integer('crop_size', 224, 'Crop_size')
 flags.DEFINE_integer('channels', 3, 'Channels for input')
 flags.DEFINE_integer('classics', 101, 'The num of class')
 FLAGS = flags.FLAGS
 MOVING_AVERAGE_DECAY = 0.9999
-model_save_dir = './models'
+model_save_dir = './models/model_100000_16_16_1e-1_0.9'
 
-os.environ["CUDA_VISIBLE_DEVICES"] = "3"
+os.environ["CUDA_VISIBLE_DEVICES"] = "4"
 
 
 def run_training():
@@ -66,31 +66,27 @@ def run_training():
                         FLAGS.crop_size,
                         FLAGS.channels
                         )
-        tower_grads = []
-        logits = []
-        opt_stable = tf.train.AdamOptimizer(1e-4)
-        for gpu_index in range(0, gpu_num):
-            with tf.device('/gpu:%d' % gpu_index):
-                i3d_tuple = InceptionI3d(
+
+
+        #opt_stable = tf.train.AdamOptimizer(1e-3)
+        learning_rate = tf.train.exponential_decay(FLAGS.learning_rate, global_step, decay_steps=40000, decay_rate=0.1,staircase=True)
+        opt_stable = tf.train.MomentumOptimizer(learning_rate, 0.9)
+        i3d_tuple = InceptionI3d(
                                 num_classes=FLAGS.classics,
                                 spatial_squeeze=True,
                                 final_endpoint='Logits',
                                 name='inception_i3d'
-                                )(images_placeholder[gpu_index * FLAGS.batch_size:(gpu_index + 1) * FLAGS.batch_size, :, :, :, :], is_training=True)
-                logit = i3d_tuple[0]
-                loss_name_scope = ('gpud_%d_loss' % gpu_index)
-                loss = tower_loss(
-                                loss_name_scope,
+                                )(images_placeholder, is_training=True)
+        logit = i3d_tuple[0]
+        loss = tower_loss(
                                 logit,
-                                labels_placeholder[gpu_index * FLAGS.batch_size:(gpu_index + 1) * FLAGS.batch_size]
+                                labels_placeholder
                                 )
-                grads = opt_stable.compute_gradients(loss)
-                tower_grads.append(grads)
-                logits.append(logit)
-        logits = tf.concat(logits, 0)
-        accuracy = tower_acc(logits, labels_placeholder)
+        grads = opt_stable.compute_gradients(loss)
+        accuracy = tower_acc(logit, labels_placeholder)
         tf.summary.scalar('accuracy', accuracy)
-        grads = average_gradients(tower_grads)
+        tf.summary.scalar('loss', loss)
+        tf.summary.scalar('learning_rate', learning_rate)
         apply_gradient_op = opt_stable.apply_gradients(grads, global_step=global_step)
         variable_averages = tf.train.ExponentialMovingAverage(MOVING_AVERAGE_DECAY)
         variables_averages_op = variable_averages.apply(tf.trainable_variables())
@@ -106,17 +102,17 @@ def run_training():
                         config=tf.ConfigProto(allow_soft_placement=True)
                         )
         sess.run(init)
+        # Create summary writter
+        merged = tf.summary.merge_all()
     if os.path.isfile(model_filename) and use_pretrained_model:
         saver.restore(sess, model_filename)
 
-    # Create summary writter
-    merged = tf.summary.merge_all()
-    train_writer = tf.summary.FileWriter('./visual_logs/train', sess.graph)
-    test_writer = tf.summary.FileWriter('./visual_logs/test', sess.graph)
+    train_writer = tf.summary.FileWriter('./visual_logs/train_100000_16_16_1e-1_0.9', sess.graph)
+    test_writer = tf.summary.FileWriter('./visual_logs/test_100000_16_16_1e-1_0.9', sess.graph)
     for step in xrange(FLAGS.max_steps):
         start_time = time.time()
         train_images, train_labels, _, _, _ = input_data.read_clip_and_label(
-                      filename='list/ucf_list/train.list',
+                      filename='./list/ucf_list/train.list',
                       batch_size=FLAGS.batch_size * gpu_num,
                       num_frames_per_clip=FLAGS.num_frame_per_clib,
                       crop_size=FLAGS.crop_size,
@@ -132,16 +128,17 @@ def run_training():
         # Save a checkpoint and evaluate the model periodically.
         if (step) % 10 == 0 or (step + 1) == FLAGS.max_steps:
             print('Training Data Eval:')
-            summary, acc = sess.run(
-                            [merged, accuracy],
+            summary, acc, loss_all = sess.run(
+                            [merged, accuracy, loss],
                             feed_dict={images_placeholder: train_images,
                                        labels_placeholder: train_labels
                                       })
             print("accuracy: " + "{:.5f}".format(acc))
+            print("loss: " + "{:.5f}".format(loss_all))
             train_writer.add_summary(summary, step)
             print('Validation Data Eval:')
             val_images, val_labels, _, _, _ = input_data.read_clip_and_label(
-                            filename='list/ucf_list/test.list',
+                            filename='./list/ucf_list/test.list',
                             batch_size=FLAGS.batch_size * gpu_num,
                             num_frames_per_clip=FLAGS.num_frame_per_clib,
                             crop_size=FLAGS.crop_size,
