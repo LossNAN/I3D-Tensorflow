@@ -461,6 +461,7 @@ class InceptionI3d(snt.AbstractModule):
       net = tf.nn.avg_pool3d(net, ksize=[1, 2, 7, 7, 1],
                              strides=[1, 1, 1, 1, 1], padding=snt.VALID)
       net = tf.nn.dropout(net, dropout_keep_prob)
+      print(net.shape)
       logits = Unit3D(output_channels=self._num_classes,
                       kernel_shape=[1, 1, 1],
                       activation_fn=None,

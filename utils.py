@@ -24,7 +24,7 @@ import math
 import numpy as np
 
 
-def placeholder_inputs(batch_size=16, num_frame_per_clib=16, crop_size=224, channels=3):
+def placeholder_inputs(batch_size=16, num_frame_per_clib=16, crop_size=224, rgb_channels=3, flow_channels=2):
     """Generate placeholder variables to represent the input tensors.
 
     These placeholders are used as inputs by the rest of the model building
@@ -43,14 +43,20 @@ def placeholder_inputs(batch_size=16, num_frame_per_clib=16, crop_size=224, chan
     # Note that the shapes of the placeholders match the shapes of the full
     # image and label tensors, except the first dimension is now batch_size
     # rather than the full size of the train or test data sets.
-    images_placeholder = tf.placeholder(tf.float32, shape=(batch_size,
+    rgb_images_placeholder = tf.placeholder(tf.float32, shape=(batch_size,
                                                            num_frame_per_clib,
                                                            crop_size,
                                                            crop_size,
-                                                           channels))
+                                                           rgb_channels))
+    flow_images_placeholder = tf.placeholder(tf.float32, shape=(batch_size,
+                                                           num_frame_per_clib,
+                                                           crop_size,
+                                                           crop_size,
+                                                           flow_channels))
     labels_placeholder = tf.placeholder(tf.int64, shape=(batch_size
                                                          ))
-    return images_placeholder, labels_placeholder
+    is_training = tf.placeholder(tf.bool)
+    return rgb_images_placeholder, flow_images_placeholder, labels_placeholder, is_training
 
 
 def average_gradients(tower_grads):
