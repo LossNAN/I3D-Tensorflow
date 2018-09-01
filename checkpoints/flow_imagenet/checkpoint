@@ -1,0 +1,2 @@
+model_checkpoint_path: "/home/project/I3D/I3D/checkpoints/flow_imagenet/model.ckpt"
+all_model_checkpoint_paths: "/home/project/I3D/I3D/checkpoints/flow_imagenet/model.ckpt"
