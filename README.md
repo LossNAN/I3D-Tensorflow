@@ -1,5 +1,11 @@
 # Train I3D model on ucf101 or hmdb51 by tensorflow
 ### This code also for training your own dataset
+### Setup
+First follow the instructions for [install kinetics-i3d](https://github.com/deepmind/kinetics-i3d)<br>
+Then, clone this repository using<br>
+```linux
+$git https://github.com/13551132330/I3D-Tensorflow.git
+```
 ## How to use our code?
 ### 1.Data_process
 >>1>download UCF101 and HMDB51 dataset by yourself<br>
