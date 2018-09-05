@@ -42,3 +42,11 @@ python test_ucf_flow.py
 python test_ucf_rgb+flow.py
 ```
 ### 4.Result on my linux
+  Architecture | Pre_train | ACC/top1
+  ------------- | -------------  | -------------
+ RGB+I3D  |    Kinetics  |86.6
+ FLOW+I3D |    Kinetics  |91.8
+ TWO_STREAM+I3D  |   Kinetics  |95.3
+ FLOW+I3D | IMAGENET+Kinetics  |94.72
+ RGB+I3D  | IMAGENET+Kinetics  |95.68
+ TWO_STREAM+I3D | IMAGENET+Kinetics  |97.6
