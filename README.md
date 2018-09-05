@@ -1,6 +1,6 @@
 # Train I3D model on ucf101 or hmdb51 by tensorflow
 ### This code also for training your own dataset
-## How use our code?
+## How to use our code?
 ### 1.Data_process
 >>1>download UCF101 and HMDB51 dataset by yourself<br>
 >>2>extract RGB and FLOW frames by [denseFlow_GPU](https://github.com/yangwangx/denseFlow_gpu), such as:<br>
