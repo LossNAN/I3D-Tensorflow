@@ -4,7 +4,7 @@
 First follow the instructions for [install kinetics-i3d](https://github.com/deepmind/kinetics-i3d)<br>
 Then, clone this repository using<br>
 ```linux
-$git clone https://github.com/13551132330/I3D-Tensorflow.git
+$git clone https://github.com/LossNAN/I3D-Tensorflow.git
 ```
 ## How to use our code?
 ### 1.Data_process
