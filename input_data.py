@@ -166,15 +166,15 @@ def data_process(tmp_data, crop_size):
     return img_datas
 
 def read_clip_and_label(filename, batch_size, start_pos=-1, num_frames_per_clip=64, sample_rate=4, crop_size=224, shuffle=True, add_flow=False):
-    #lines = open(filename, 'r')
+    lines = open(filename, 'r')
     read_dirnames = []
     rgb_data = []
     flow_data = []
     label = []
     batch_index = 0
     next_batch_start = -1
-    #lines = list(lines)
-    lines = filename
+    lines = list(lines)
+    # lines = filename
     # Forcing shuffle, if start_pos is not specified
     if start_pos < 0:
         shuffle = True
